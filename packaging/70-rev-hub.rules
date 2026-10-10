@@ -1,0 +1,6 @@
+# REV Robotics Expansion Hub (FTDI FT230X USB-serial bridge).
+# Grants the logged-in desktop user access to the serial port (hub control) and the
+# raw USB device (CBUS pins used to enter the bootloader for firmware updates).
+# Must sort before 73-seat-late.rules for TAG+="uaccess" to take effect.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", TAG+="uaccess"
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="0403", ATTR{idProduct}=="6015", TAG+="uaccess"
