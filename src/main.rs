@@ -199,8 +199,31 @@ impl Backend {
     }
 }
 
+/// `--list-ports`: prints detected hubs and whether this user (or sandbox) can access them.
+fn list_ports() {
+    let ports = hub::list_hub_ports();
+    if ports.is_empty() {
+        println!("No REV Expansion Hub serial ports found.");
+    }
+    for p in ports {
+        let serial = match std::fs::OpenOptions::new().read(true).write(true).open(&p.path) {
+            Ok(_) => "ok".to_string(),
+            Err(e) => format!("{e}"),
+        };
+        let usb = match firmware::check_usb_access(&p.serial) {
+            Ok(()) => "ok".to_string(),
+            Err(e) => format!("{e:#}"),
+        };
+        println!("{} (serial {})\n  serial port access: {serial}\n  USB access (firmware update): {usb}", p.path, p.serial);
+    }
+}
+
 fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    if std::env::args().any(|a| a == "--list-ports") {
+        list_ports();
+        return;
+    }
     if std::env::var_os("QT_QUICK_CONTROLS_STYLE").is_none() {
         // org.kde.desktop needs a QApplication; QtBridge creates a QGuiApplication.
         // SAFETY: called before any other thread is started.

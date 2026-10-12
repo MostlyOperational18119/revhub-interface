@@ -85,6 +85,11 @@ impl Cbus {
     }
 }
 
+/// Checks that the hub's USB device can be opened (needed for firmware updates).
+pub fn check_usb_access(serial: &str) -> Result<()> {
+    Cbus::open(serial).map(drop)
+}
+
 struct Bootloader {
     port: Box<dyn serialport::SerialPort>,
 }

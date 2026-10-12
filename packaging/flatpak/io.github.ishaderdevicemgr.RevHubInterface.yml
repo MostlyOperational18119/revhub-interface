@@ -1,0 +1,42 @@
+id: io.github.ishaderdevicemgr.RevHubInterface
+runtime: org.kde.Platform
+runtime-version: '6.10'
+sdk: org.kde.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: revhub-interface
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # REV hubs appear as /dev/ttyUSB* (hub control) and /dev/bus/usb/* (firmware
+  # bootloader entry). Flatpak has no narrower permission covering serial ports.
+  # Host access is still governed by packaging/70-rev-hub.rules.
+  - --device=all
+
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  env:
+    CARGO_HOME: /run/build/revhub-interface/cargo
+    CARGO_NET_OFFLINE: 'true'
+
+modules:
+  - name: revhub-interface
+    buildsystem: simple
+    build-commands:
+      - cargo build --release --locked
+      - install -Dm755 target/release/revhub-interface -t /app/bin
+      - install -Dm644 packaging/flatpak/${FLATPAK_ID}.desktop -t /app/share/applications
+      - install -Dm644 packaging/flatpak/${FLATPAK_ID}.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 packaging/flatpak/${FLATPAK_ID}.svg -t /app/share/icons/hicolor/scalable/apps
+      - install -Dm644 packaging/70-rev-hub.rules -t /app/share/revhub-interface
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - target
+          - .flatpak-builder
+          - packaging/flatpak/build-dir
+          - packaging/flatpak/repo
+      - cargo-sources.json

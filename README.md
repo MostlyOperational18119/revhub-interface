@@ -28,6 +28,56 @@ cargo run --release              # real hardware
 cargo run --release -- --simulate  # two simulated hubs with sensors, no hardware needed
 ```
 
+`revhub-interface --list-ports` prints the detected hubs and whether serial and
+USB access are granted, without opening the UI.
+
+## Flatpak (Fedora Kinoite / Silverblue)
+
+Build and install for the current user (needs `org.flatpak.Builder` from Flathub;
+the KDE 6.10 SDK and Rust extension are installed automatically):
+
+```sh
+cd packaging/flatpak
+flatpak run org.flatpak.Builder --user --install --force-clean --install-deps-from=flathub \
+    build-dir io.github.ishaderdevicemgr.RevHubInterface.yml
+```
+
+To produce a single-file bundle for other laptops:
+
+```sh
+flatpak run org.flatpak.Builder --repo=repo --force-clean build-dir io.github.ishaderdevicemgr.RevHubInterface.yml
+flatpak build-bundle repo revhub-interface.flatpak io.github.ishaderdevicemgr.RevHubInterface \
+    --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
+# on each laptop:
+flatpak install --user revhub-interface.flatpak
+```
+
+The sandbox gets `--device=all` (Flatpak has no narrower permission for serial
+ports), but host device permissions still apply, so each laptop also needs the
+udev rule, installed once by an admin. This works on immutable systems like
+Kinoite: only `/usr` is read-only, while `/etc` is writable and preserved across
+updates and rollbacks, so no `rpm-ostree` layering or reboot is needed. The
+Flatpak bundles the rule, so the repo isn't needed on each laptop:
+
+```sh
+flatpak run --no-documents-portal --command=cat io.github.ishaderdevicemgr.RevHubInterface /app/share/revhub-interface/70-rev-hub.rules \
+  | sudo tee /etc/udev/rules.d/70-rev-hub.rules
+sudo udevadm control --reload && sudo udevadm trigger
+```
+
+Then replug the hub and check with
+`flatpak run io.github.ishaderdevicemgr.RevHubInterface --list-ports`.
+
+Don't use the `dialout` group on Kinoite: system groups live in
+`/usr/lib/group`, so `usermod -aG dialout` fails, and the group doesn't cover
+the USB access firmware updates need anyway.
+
+After changing dependencies, regenerate the offline crate list:
+
+```sh
+python3 packaging/flatpak/generate-cargo-sources.py Cargo.lock > packaging/flatpak/cargo-sources.json
+```
+
 Press **Esc** (or E-Stop) at any time to stop all motors and servos.
 Motors and servos need 12 V battery power; USB alone only powers the logic.
 

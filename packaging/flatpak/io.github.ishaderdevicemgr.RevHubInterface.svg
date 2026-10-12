@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b4252"/>
+      <stop offset="1" stop-color="#2b303b"/>
+    </linearGradient>
+  </defs>
+  <!-- hub enclosure -->
+  <rect x="12" y="20" width="104" height="88" rx="14" fill="url(#body)"/>
+  <rect x="12" y="20" width="104" height="88" rx="14" fill="none" stroke="#1d2129" stroke-width="2"/>
+  <!-- connector rows -->
+  <g fill="#e8a33a">
+    <rect x="24" y="30" width="12" height="8" rx="2"/>
+    <rect x="42" y="30" width="12" height="8" rx="2"/>
+    <rect x="60" y="30" width="12" height="8" rx="2"/>
+    <rect x="78" y="30" width="12" height="8" rx="2"/>
+    <rect x="96" y="30" width="8" height="8" rx="2"/>
+  </g>
+  <g fill="#7aa2d6">
+    <rect x="24" y="90" width="8" height="8" rx="2"/>
+    <rect x="36" y="90" width="8" height="8" rx="2"/>
+    <rect x="48" y="90" width="8" height="8" rx="2"/>
+    <rect x="60" y="90" width="8" height="8" rx="2"/>
+    <rect x="72" y="90" width="8" height="8" rx="2"/>
+    <rect x="84" y="90" width="8" height="8" rx="2"/>
+    <rect x="96" y="90" width="8" height="8" rx="2"/>
+  </g>
+  <!-- motor dial -->
+  <circle cx="64" cy="64" r="18" fill="#1d2129" stroke="#e8a33a" stroke-width="4"/>
+  <path d="M64 64 L64 50" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="4" fill="#ffffff"/>
+  <!-- status LED -->
+  <circle cx="100" cy="64" r="5" fill="#4cd964"/>
+</svg>

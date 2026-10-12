@@ -2,6 +2,7 @@
 
 use crate::protocol::{BROADCAST_ADDRESS, Decoder, HOST_ADDRESS, Packet, RESPONSE_BIT, adc, cmd, nack};
 use std::io::{Read, Write};
+use std::path::Path;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 
@@ -83,22 +84,33 @@ pub struct PortInfo {
 }
 
 /// Lists serial ports that look like REV hubs (FTDI devices with a `D...` serial number).
+///
+/// Reads sysfs directly rather than the udev database, which is not available inside
+/// a Flatpak sandbox.
 pub fn list_hub_ports() -> Vec<PortInfo> {
-    let Ok(ports) = serialport::available_ports() else {
+    list_hub_ports_in(Path::new("/sys/class/tty"))
+}
+
+fn list_hub_ports_in(class_dir: &Path) -> Vec<PortInfo> {
+    let Ok(entries) = std::fs::read_dir(class_dir) else {
         return Vec::new();
     };
-    ports
-        .into_iter()
-        .filter_map(|p| match p.port_type {
-            serialport::SerialPortType::UsbPort(info)
-                if info.vid == FTDI_VID
-                    && info.serial_number.as_deref().is_some_and(|s| s.starts_with('D') && s.len() > 2) =>
-            {
-                Some(PortInfo { path: p.port_name, serial: info.serial_number.unwrap_or_default() })
-            }
-            _ => None,
+    let read = |dir: &Path, attr: &str| std::fs::read_to_string(dir.join(attr)).ok().map(|s| s.trim().to_string());
+    let mut ports: Vec<PortInfo> = entries
+        .flatten()
+        .filter_map(|entry| {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            // .../usb1/1-1/1-1:1.0/ttyUSB0: the USB device is the first ancestor with an idVendor.
+            let device = std::fs::canonicalize(entry.path().join("device")).ok()?;
+            let usb = device.ancestors().find(|p| p.join("idVendor").is_file())?;
+            let vid = u16::from_str_radix(&read(usb, "idVendor")?, 16).ok()?;
+            let serial = read(usb, "serial")?;
+            (vid == FTDI_VID && serial.starts_with('D') && serial.len() > 2)
+                .then(|| PortInfo { path: format!("/dev/{name}"), serial })
         })
-        .collect()
+        .collect();
+    ports.sort_by(|a, b| a.path.cmp(&b.path));
+    ports
 }
 
 #[derive(Debug, Clone)]
@@ -361,4 +373,37 @@ impl Connection {
 
 fn byte(payload: &[u8], idx: usize, command: u16) -> Result<u8> {
     payload.get(idx).copied().ok_or(HubError::ShortPayload(command))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::symlink;
+
+    #[test]
+    fn finds_hubs_in_sysfs_layout() {
+        let root = std::env::temp_dir().join(format!("revhub-sysfs-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let class = root.join("class/tty");
+        std::fs::create_dir_all(&class).unwrap();
+        let add = |tty: &str, bus: &str, vid: &str, serial: &str| {
+            let usb = root.join("devices").join(bus);
+            let iface = usb.join(format!("{bus}:1.0"));
+            std::fs::create_dir_all(iface.join(tty)).unwrap();
+            std::fs::write(usb.join("idVendor"), format!("{vid}\n")).unwrap();
+            std::fs::write(usb.join("serial"), format!("{serial}\n")).unwrap();
+            std::fs::create_dir_all(class.join(tty)).unwrap();
+            symlink(iface.join(tty), class.join(tty).join("device")).unwrap();
+        };
+        add("ttyUSB1", "1-2", "0403", "DQ1868AH");
+        add("ttyUSB0", "1-1", "0403", "A9XYZ123"); // some other FTDI adapter
+        add("ttyACM0", "1-3", "2341", "D1234567"); // not FTDI
+        std::fs::create_dir_all(class.join("tty0")).unwrap(); // virtual console, no device link
+
+        let ports = list_hub_ports_in(&class);
+        std::fs::remove_dir_all(&root).unwrap();
+        assert_eq!(ports.len(), 1);
+        assert_eq!(ports[0].path, "/dev/ttyUSB1");
+        assert_eq!(ports[0].serial, "DQ1868AH");
+    }
 }

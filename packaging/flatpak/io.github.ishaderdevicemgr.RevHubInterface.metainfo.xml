@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.ishaderdevicemgr.RevHubInterface</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>REV Hub Interface</name>
+  <summary>Test REV Expansion Hub motors, servos and sensors over USB</summary>
+  <developer id="io.github.ishaderdevicemgr">
+    <name>IShaderDeviceMgr</name>
+  </developer>
+  <description>
+    <p>
+      A Linux-native port of REV Robotics' REV Hub Interface for FTC teams. Connect a
+      REV Expansion Hub over USB to prototype and troubleshoot without setting up a
+      full robot control system.
+    </p>
+    <ul>
+      <li>Drive DC motors and read encoder position, velocity and current</li>
+      <li>Position servos by pulse width or FTC position</li>
+      <li>Read the REV 2m Distance Sensor, Color Sensors V2/V3 and the built-in IMU</li>
+      <li>Use digital and analog IO</li>
+      <li>Set hub addresses and update Expansion Hub firmware</li>
+    </ul>
+    <p>
+      The hub's serial and USB devices must be accessible to your user; install the
+      udev rule shipped in /app/share/revhub-interface once per computer.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.ishaderdevicemgr.RevHubInterface.desktop</launchable>
+  <categories>
+    <category>Development</category>
+    <category>Electronics</category>
+  </categories>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-10-10"/>
+  </releases>
+</component>

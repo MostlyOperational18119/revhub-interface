@@ -1,1 +1,5 @@
 /target
+/packaging/flatpak/build-dir
+/packaging/flatpak/repo
+/packaging/flatpak/.flatpak-builder
+*.flatpak
