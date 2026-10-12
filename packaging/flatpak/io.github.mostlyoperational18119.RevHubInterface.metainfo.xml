@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.ishaderdevicemgr.RevHubInterface</id>
+  <id>io.github.mostlyoperational18119.RevHubInterface</id>
   <metadata_license>CC0-1.0</metadata_license>
   <name>REV Hub Interface</name>
   <summary>Test REV Expansion Hub motors, servos and sensors over USB</summary>
-  <developer id="io.github.ishaderdevicemgr">
-    <name>IShaderDeviceMgr</name>
+  <developer id="io.github.mostlyoperational18119">
+    <name>FTC Team 18119 Mostly Operational</name>
   </developer>
   <description>
     <p>
@@ -25,7 +25,9 @@
       udev rule shipped in /app/share/revhub-interface once per computer.
     </p>
   </description>
-  <launchable type="desktop-id">io.github.ishaderdevicemgr.RevHubInterface.desktop</launchable>
+  <url type="homepage">https://github.com/MostlyOperational18119/revhub-interface</url>
+  <url type="bugtracker">https://github.com/MostlyOperational18119/revhub-interface/issues</url>
+  <launchable type="desktop-id">io.github.mostlyoperational18119.RevHubInterface.desktop</launchable>
   <categories>
     <category>Development</category>
     <category>Electronics</category>
